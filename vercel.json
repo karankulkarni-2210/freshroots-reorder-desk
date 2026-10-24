@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm test && npm run build",
+  "outputDirectory": "public",
+  "functions": {
+    "api/brief.mjs": { "maxDuration": 60 }
+  }
+}

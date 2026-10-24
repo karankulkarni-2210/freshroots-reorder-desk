@@ -1,0 +1,16 @@
+{
+  "name": "freshroots-reorder-desk",
+  "private": true,
+  "description": "Twice-weekly reorder review for Freshroots: Raghav's rules on the SAP export, a judgment queue with AI briefs, and a person's approval on every order line.",
+  "scripts": {
+    "test": "node engine.test.js && node api.test.mjs",
+    "build": "node build.mjs",
+    "sample-data": "node make-sample-data.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
