@@ -11,7 +11,7 @@
   --text: #eef5ea; --muted: #a2b3a5; --faint: #8a9b8d;
   --lime: #c8f36b; --lime-2: #e9f8a8; --lime-ink: #0c1405; --lime-soft: rgba(200, 243, 107, .12); --lime-line: rgba(200, 243, 107, .38);
   --risk: #ff9282; --risk-soft: rgba(255, 146, 130, .13); --over: #f3c66e; --over-soft: rgba(243, 198, 110, .13);
-  --sky: #8fd3ff; --violet: #bba8ff; --teal: #7fe0c4;
+  --violet: #bba8ff; --teal: #7fe0c4;
   --glow: 0 0 0 1px rgba(200, 243, 107, .5), 0 0 26px rgba(200, 243, 107, .32);
   --font: "Geist", Inter, system-ui, sans-serif; --serif: "Instrument Serif", Georgia, serif; --mono: "Geist Mono", ui-monospace, Menlo, monospace;
   /* read by charts.js */
@@ -81,7 +81,7 @@ a { color: var(--lime-2); }
 .dash-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-top: 6px; }
 .dash-head h2 { font-size: 15px; letter-spacing: .01em; }
 .dash-head span { color: var(--muted); font-size: 12.5px; }
-.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .tile { --acc: var(--lime); position: relative; overflow: hidden; display: grid; gap: 6px; align-content: start; min-width: 0; min-height: 138px; padding: 18px 18px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--panel); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); color: var(--text); text-align: left; cursor: pointer; transition: transform .15s, border-color .15s, box-shadow .2s; }
 .tile::before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, var(--acc), transparent 80%); }
 .tile::after { content: ""; position: absolute; right: -36px; top: -36px; width: 130px; height: 130px; border-radius: 50%; background: var(--acc); opacity: .13; filter: blur(30px); pointer-events: none; }
@@ -246,13 +246,11 @@ tr.flash > td, tr.flash-row > td { animation: wash 1s ease-out; }
 @media (max-width: 1100px) { tr.row > td:first-child, .queue th:first-child { position: sticky; left: 0; z-index: 1; background: var(--solid); } }
 @media (max-width: 960px) {
   .cards { grid-template-columns: 1fr; } .panels { grid-template-columns: 1fr; }
-  /* Five blocks as three over two */
-  .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } .tile { grid-column: span 2; } .tile:nth-child(n+4) { grid-column: span 3; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
-  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .tile, .tile:nth-child(n+4) { grid-column: span 1; min-height: 116px; padding: 14px; border-radius: 16px; }
-  .tile:first-child { grid-column: span 2; }
+  .tiles { gap: 10px; }
+  .tile { min-height: 116px; padding: 14px; border-radius: 16px; }
   .t-num { font-size: 30px; }
 }
 @media (max-width: 760px) {
@@ -297,7 +295,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtN = n => Math.round(n).toLocaleString('en-IN');
 const fmtINR = n => (n >= 1e5 ? '₹' + (n / 1e5).toFixed(2) + 'L' : '₹' + fmtN(n));
-const pct = (x, d = 0) => (x == null ? '—' : (x * 100).toFixed(d) + '%');
+const pct = (x, d = 0) => (x == null ? 'n/a' : (x * 100).toFixed(d) + '%');
 const fmtDate = s => new Date(s + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const fmtShort = s => new Date(s + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const fmtTime = s => (s ? new Date(s).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
@@ -334,13 +332,12 @@ const OVERRIDE_REASONS = {
 const VIEWS = {
   new: ['New launches', r => r.reasons.includes('new_sku'), 'SKUs with under 12 weeks of sales. The rules have too little history to average, so each one is judged by hand.'],
   done: ['Approved', r => !!state.decisions[r.sku], 'Lines already approved or overridden in this run. Undo any of them from its row.'],
-  todo: ['Awaiting review', r => !state.decisions[r.sku], 'Every line nobody has approved yet, judgment cases first.'],
   critical: ['Needs attention', r => r.action === 'reorder_now' && !state.decisions[r.sku], 'Under minimum cover, so the rules say reorder now. A late order here is a stock-out: review these first.'],
 };
 const inView = (r, f) => f === 'all' || r.tier === f || (VIEWS[f] ? VIEWS[f][1](r) : false);
-// One colour per meaning: violet needs a person, lime is done or safe, sky is waiting, coral is urgent, gold is money.
-const ACC = { all: '--lime-2', new: '--violet', done: '--lime', todo: '--sky', critical: '--risk', judgment: '--violet', top_value: '--over', spot_check: '--teal', bulk: '--lime' };
-const BLURB = { all: 'everything, judgment first', judgment: 'rules can’t settle these', top_value: 'most money at stake', spot_check: '1 in 10 quiet rows, checked', bulk: 'safe to approve together' };
+// One colour per meaning: violet needs a person, lime is done or safe, teal is a sample, coral is urgent, gold is money.
+const ACC = { all: '--lime-2', new: '--violet', done: '--lime', critical: '--risk', judgment: '--violet', top_value: '--over', spot_check: '--teal', bulk: '--lime' };
+const BLURB = { judgment: 'rules can’t settle these', top_value: 'most money at stake', spot_check: '1 in 10 quiet rows, checked', bulk: 'safe to approve together' };
 const SUGGESTIONS = { follow_rule: 'Follow the rule', reduce_qty: 'Order less', increase_qty: 'Order more', hold: 'No order change this run', ask_sales: 'Ask the field team first' };
 const AI_OFF_CODES = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
 
@@ -744,27 +741,26 @@ function heroHtml() {
 function dashHtml() {
   const rows = state.ev.rows, count = f => rows.filter(f).length, open = r => !state.decisions[r.sku];
   const bar = (of, ...parts) => `<span class="t-bar" aria-hidden="true">${parts.map(([n, c]) => `<span style="width:${(n / (of || 1)) * 100}%;background:var(${c})"></span>`).join('')}</span>`;
-  const tile = (f, label, num, foot, extra = '', pressable = true, acc = ACC[f]) => `<button class="tile" style="--acc:var(${acc})" data-act="jump" data-f="${f}"${pressable ? ` aria-pressed="${state.filter === f}"` : ''}>
+  const tile = (f, label, num, foot, extra = '', acc = ACC[f]) => `<button class="tile" style="--acc:var(${acc})" data-act="jump" data-f="${f}" aria-pressed="${state.filter === f}">
       <span class="t-label"><span class="t-dot"></span>${label}${ICON.arrow}</span><span class="t-num">${fmtN(num)}</span><span class="t-foot">${foot}</span>${extra}</button>`;
-  const total = rows.length, newN = count(VIEWS.new[1]), decided = count(VIEWS.done[1]);
+  // A review type shows what is still to review in it, and how far through it the team is.
+  const type = t => {
+    const all = count(r => r.tier === t), left = count(r => r.tier === t && open(r));
+    return tile(t, TIERS[t], left, `left of ${fmtN(all)} · ${BLURB[t]}`, bar(all, [all - left, ACC[t]]));
+  };
+  const total = rows.length, newN = count(VIEWS.new[1]), decided = count(VIEWS.done[1]), critical = count(VIEWS.critical[1]);
   const over = count(r => state.decisions[r.sku] && state.decisions[r.sku].status === 'overridden');
-  const judgeLeft = count(r => r.tier === 'judgment' && open(r)), critical = count(VIEWS.critical[1]);
-  const glance = [
-    tile('all', 'SKUs in this run', total, `${fmtN(total - newN)} established · ${fmtN(newN)} new`, bar(total, [total - newN, '--lime-2'], [newN, '--violet']), false),
+  const tiles = [
+    tile('all', 'SKUs in this run', total, `${fmtN(total - newN)} established · ${fmtN(newN)} new`, bar(total, [total - newN, '--lime-2'], [newN, '--violet'])),
     tile('new', 'New launches', newN, 'Under 12 weeks of sales, judged by hand', bar(total, [newN, '--violet'])),
     tile('done', 'Approved', decided, `${pct(decided / (total || 1))} signed off · ${fmtN(over)} overridden`, bar(total, [decided, '--lime'])),
-    tile('todo', 'Awaiting review', total - decided, `${fmtN(judgeLeft)} still need judgment`, bar(total, [total - decided, '--sky'])),
-    tile('critical', 'Needs attention', critical, critical ? 'Under minimum cover: reorder now' : 'Nothing under minimum cover', bar(total, [critical, '--risk']), true, critical ? ACC.critical : '--faint'),
+    type('judgment'),
+    tile('critical', 'Needs attention', critical, critical ? 'Under minimum cover: reorder now' : 'Nothing under minimum cover', bar(total, [critical, '--risk']), critical ? ACC.critical : '--faint'),
+    type('top_value'), type('spot_check'), type('bulk'),
   ];
-  const types = ['all', ...ORDER].map(t => {
-    const all = count(r => t === 'all' || r.tier === t), left = count(r => (t === 'all' || r.tier === t) && open(r));
-    return tile(t, t === 'all' ? 'All' : TIERS[t], left, `of ${fmtN(all)} · ${BLURB[t]}`, bar(all, [all - left, ACC[t]]));
-  });
   return `<section class="dash" aria-label="This run at a glance">
     <div class="dash-head"><h2>At a glance</h2><span>Tap a block to jump to its lines</span></div>
-    <div class="tiles">${glance.join('')}</div>
-    <div class="dash-head"><h2>Review queue</h2><span>Left to review, by type</span></div>
-    <div class="tiles">${types.join('')}</div>
+    <div class="tiles">${tiles.join('')}</div>
   </section>`;
 }
 
@@ -845,7 +841,7 @@ function cardsHtml() {
       ${ringsFig()}
       <div class="stat-rows">
         <div class="stat-row"><span><span class="muted">A · backtest</span> <b>${pct(bt.weeklyRate)}</b> <span class="muted">vs ${pct(bt.monthlyRate)} monthly</span></span><span class="chip ${aChip[0]}">${aChip[1]}</span></div>
-        <div class="stat-row"><span><span class="muted">B · overrides</span> <b>${cur.decided ? pct(cur.rate, 1) : '—'}</b> <span class="muted">this run</span></span><span class="chip ${bChip[0]}">${bChip[1]}</span></div>
+        <div class="stat-row"><span><span class="muted">B · overrides</span> <b>${cur.decided ? pct(cur.rate, 1) : 'none yet'}</b> <span class="muted">this run</span></span><span class="chip ${bChip[0]}">${bChip[1]}</span></div>
         <div class="stat-row"><span><span class="muted">G · over max cover</span> <b>${plural(s.overCover, 'SKU')}</b></span><span class="chip watch">Must not rise</span></div>
       </div>
     </article>
@@ -864,7 +860,7 @@ function pageHead(title, sub) {
 }
 
 function coverHtml(r) {
-  if (r.cover == null) return '<span class="muted">—</span>';
+  if (r.cover == null) return '<span class="muted">No sales</span>';
   const scale = r.band.max * 1.6, cls = r.stockoutRisk ? 'risk' : r.overstock ? 'over' : '';
   return `<div class="cover" title="Target band ${r.band.min}–${r.band.max} weeks"><span class="n">${r.cover >= 99.5 ? '99+' : r.cover.toFixed(1)}</span>
     <span class="track"><span class="band" style="left:${(r.band.min / scale) * 100}%;width:${((r.band.max - r.band.min) / scale) * 100}%"></span><span class="tick ${cls}" style="left:${(Math.min(r.cover, scale) / scale) * 100}%"></span></span></div>`;
@@ -894,7 +890,7 @@ function rowHtml(r) {
     <td class="num">${fmtN(r.avg4)}${change == null ? '' : `<span class="chg${r.highDemand ? ' fired' : ''}">${change > 0 ? '+' : change < 0 ? '−' : ''}${Math.abs(Math.round(change * 100))}%</span>`}</td>
     <td class="num">${fmtN(r.onHand)}${r.onOrder ? `<span class="sub">+${fmtN(r.onOrder)} on order</span>` : ''}</td>
     <td>${d && d.status === 'overridden' ? actHtml(d.action, d.qty) : actHtml(r.action, r.qty)}</td>
-    <td class="num">${r.value ? fmtINR(r.value) : '—'}</td>
+    <td class="num">${r.value ? fmtINR(r.value) : '<span class="muted">₹0</span>'}</td>
     <td><span class="tier ${r.tier}">${TIERS[r.tier]}</span></td>
     <td class="ra">${rowActions(r, open)}</td></tr>` + (open ? detailHtml(r) : '');
 }
@@ -1043,7 +1039,7 @@ function evidenceHtml() {
     </section>
     <section class="panel"><h2>Override rate in the first four weeks</h2>
       ${kb.rows.length ? `<table><thead><tr><th>Week</th><th class="num">Decided</th><th class="num">Overridden</th><th class="num">Rate</th><th class="num">Followed AI</th></tr></thead><tbody>${
-        kb.rows.map(r => `<tr><td>${fmtDate(r.asOf)}${r.asOf === state.ev.asOf ? ' <span class="muted">· includes this run</span>' : ''}</td><td class="num">${fmtN(r.decided)}</td><td class="num">${fmtN(r.over)}</td><td class="num">${pct(r.rate, 1)}</td><td class="num">${r.aiN ? pct(r.aiAgree) + ' of ' + r.aiN : '—'}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">No decisions saved yet.</p>'}
+        kb.rows.map(r => `<tr><td>${fmtDate(r.asOf)}${r.asOf === state.ev.asOf ? ' <span class="muted">· includes this run</span>' : ''}</td><td class="num">${fmtN(r.decided)}</td><td class="num">${fmtN(r.over)}</td><td class="num">${pct(r.rate, 1)}</td><td class="num">${r.aiN ? pct(r.aiAgree) + ' of ' + r.aiN : 'none'}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">No decisions saved yet.</p>'}
       <p class="small muted">Kill check B: stop if more than 25% of at least 10 decisions are overridden in 2 of the first 4 weeks. A week adds up its Monday and Thursday runs. Followed AI is a warning light: near 100% with fast reviews can mean briefs are being rubber-stamped.</p>
     </section>
     <section class="panel"><h2>What Raghav knows that the rules don't</h2>

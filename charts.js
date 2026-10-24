@@ -1,4 +1,4 @@
-// tasteskill / charts.js — small, dependency-free charts for app screens, drawn in SVG from your data.
+// tasteskill / charts.js: small, dependency-free charts for app screens, drawn in SVG from your data.
 // They follow references/app-screens.md: one question per chart, one series that matters, 3–5 quiet
 // horizontal gridlines, round ticks that top out above the largest value, 2px straight lines with no
 // markers, square bars, no gradients, a bare tooltip, tabular figures. Colours come from CSS variables:
