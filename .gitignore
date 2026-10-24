@@ -3,3 +3,5 @@ public/
 sample-data/
 .vercel/
 .DS_Store
+.vercel
+.env*

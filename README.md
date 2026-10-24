@@ -1,5 +1,7 @@
 # Freshroots Reorder Desk
 
+Live: https://freshroots-reorder-desk-sand.vercel.app · Database: Supabase project `freshroots-reorder-desk` (Mumbai)
+
 Twice-weekly reorder review for Freshroots' demand planning (MESA case 01). Raghav's documented rules run on the SAP export; what they can't settle goes to a judgment queue with an AI brief; every order line needs a person's approval; approved lines export as a CSV for Zoho Inventory. The desk never places an order itself.
 
 ## How it runs
