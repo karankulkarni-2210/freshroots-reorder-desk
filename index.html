@@ -141,8 +141,9 @@ a { color: var(--lime-2); }
 .tablebox { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); background: rgba(5, 8, 6, .35); }
 table { border-collapse: collapse; width: 100%; }
 .queue { min-width: 1120px; }
-th { text-align: left; font-weight: 400; font-size: 12px; color: var(--muted); padding: 14px 14px 10px; white-space: nowrap; border-bottom: 1px solid var(--line); }
-td { padding: 0 14px; height: 62px; border-bottom: 1px solid rgba(215, 255, 170, .06); vertical-align: middle; }
+/* 10px side padding lets the eight queue columns fit the 1180px column without a sideways scroll on a laptop. */
+th { text-align: left; font-weight: 400; font-size: 12px; color: var(--muted); padding: 14px 10px 10px; white-space: nowrap; border-bottom: 1px solid var(--line); }
+td { padding: 0 10px; height: 62px; border-bottom: 1px solid rgba(215, 255, 170, .06); vertical-align: middle; }
 th.num, td.num { text-align: right; }
 tr.row { cursor: pointer; transition: background-color .15s; }
 tr.row:hover > td { background: rgba(255, 255, 255, .025); }
